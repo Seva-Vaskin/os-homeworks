@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "proclock.h"
 
 uint64
 sys_exit(void)
@@ -98,4 +99,34 @@ sys_hello(void)
 	argint(1, &b);
 
 	return a * b;
+}
+
+uint64
+sys_mklock(void)
+{
+    return make_lock();
+}
+
+uint64
+sys_rmlock(void)
+{
+    int lock_id;
+    argint(0, &lock_id);
+    return delete_lock(lock_id);
+}
+
+uint64
+sys_lock(void)
+{
+    int lock_id;
+    argint(0, &lock_id);
+    return lock(lock_id);
+}
+
+uint64
+sys_unlock(void)
+{
+    int lock_id;
+    argint(0, &lock_id);
+    return unlock(lock_id);
 }
