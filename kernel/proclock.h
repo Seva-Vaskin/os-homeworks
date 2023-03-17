@@ -5,4 +5,3 @@ int make_lock();
 int lock(int);
 int unlock(int);
 int delete_lock(int);
-
