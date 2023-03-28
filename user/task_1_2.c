@@ -75,12 +75,12 @@ int main(int argc, char * argv[]) {
         interact(p2[0], -1, lock_id);
 
         close(p2[0]);
-
+        rmlock(lock_id);
     }
     else {
         fprintf(2, "fork error\n");
+        rmlock(lock_id);
         exit(1);
     }
-    rmlock(lock_id);
     exit(0);
 }

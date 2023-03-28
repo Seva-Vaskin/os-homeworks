@@ -38,6 +38,7 @@ void init_proclock() {
     for (int i = 0; i < MAX_LOCKS; i++) {
         proclock.locks_stack[i] = i;
         proclock.is_taken[i] = 0;
+        initsleeplock(proclock.sleep_locks[i], "proclock")
     }
 }
 
@@ -48,7 +49,6 @@ int make_lock() {
         res = -1;
     else {
         res = proclock.locks_stack[proclock.locks_stack_pos++];
-        initsleeplock(&proclock.sleep_locks[res], "proclock");
         proclock.is_taken[res] = 1;
     }
     release(&proclock.lock);
