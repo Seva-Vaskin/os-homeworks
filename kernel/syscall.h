@@ -20,3 +20,8 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+#define SYS_hello  22
+#define SYS_mklock 23
+#define SYS_rmlock 24
+#define SYS_lock   25
+#define SYS_unlock 26
