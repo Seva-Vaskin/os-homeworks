@@ -89,3 +89,34 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_pgaccess(void) {
+
+    uint64 va;
+    int count;
+    uint64 outBufPtr = 0;
+    argaddr(0, &va);
+    argint(1, &count);
+    argaddr(2, &outBufPtr);
+
+    if (count < 0 || count > 64)
+        panic("pgaccess: incorrect count");
+    if (va >= MAXVA)
+        panic("pgaccess: incorrect va");
+
+
+    uint64 buf = 0;
+    pagetable_t pagetable = myproc()->pagetable;
+    for (int i = 0; i < count; i++, va += PGSIZE) {
+        pte_t * pte = walk(pagetable, va, 0);
+        if (pte == 0) {
+            return -1; // cannot get next pte
+        }
+        if (*pte & PTE_A) {
+            buf |= 1 << i;
+            *pte &= ~PTE_A;
+        }
+    }
+    return copyout(pagetable, outBufPtr, (char *)&buf, sizeof buf);
+}
