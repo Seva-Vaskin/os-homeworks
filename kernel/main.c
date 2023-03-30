@@ -29,6 +29,10 @@ main()
     fileinit();      // file table
     virtio_disk_init(); // emulated hard disk
     userinit();      // first user process
+    init_dmesg_buf();
+
+    pr_msg("system initialized");
+
     __sync_synchronize();
     started = 1;
   } else {
