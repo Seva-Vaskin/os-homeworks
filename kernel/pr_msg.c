@@ -42,11 +42,22 @@ int get_next_msg_pos(int pos) {
     return get_next_pos(get_end_of_msg(pos));
 }
 
+void print_char(char c) {
+    if (!(32 <= c && c <= 126))
+        panic("dmesg: unprintable character");
+    char buf[2];
+    buf[1] = '\0';
+    buf[0] = c;
+    printf("%s", buf);
+}
+
 int print_from_pos(int pos) {
     int end_pos = get_end_of_msg(pos);
-    printf("%s", dmesg_buf.buf + pos);
-    if (end_pos < pos)
-        printf("%s", dmesg_buf.buf);
+    for (; pos != end_pos; pos = get_next_pos(pos)) {
+        print_char(dmesg_buf.buf[pos]);
+    }
+    if (pos != end_pos || dmesg_buf.buf[pos] != '\0')
+        panic("dmesg: printing error");
     printf("\n");
     return end_pos;
 }
@@ -116,9 +127,12 @@ void show_buf() {
     printf("\n");
 }
 
+void pr_msg(const char *str);
+
 void show_dmesg_buf() {
+    pr_msg("dmesg showed");
     acquire(&dmesg_buf.lock);
-    for (int i = dmesg_buf.begin;dmesg_buf.entries_count != 0; i++) {
+    for (int i = dmesg_buf.begin; dmesg_buf.entries_count != 0; i++) {
         i = print_from_pos(i);
         if (i == dmesg_buf.end)
             break;
@@ -127,8 +141,9 @@ void show_dmesg_buf() {
 }
 
 char *get_ticks_str(char *ticks_buf) {
-    ticks_buf[TICKS_BUF_SIZE - 1] = '\0';
     char *ticks_str = ticks_buf + TICKS_BUF_SIZE - 1;
+    *ticks_str = '\0';
+    ticks_str--;
     *ticks_str = ' ';
     ticks_str--;
     *ticks_str = ']';
@@ -150,7 +165,6 @@ char *get_ticks_str(char *ticks_buf) {
 void pr_msg(const char *str) {
     if (str == 0)
         return;
-
     char ticks_buf[TICKS_BUF_SIZE];
     char *ticks_str = get_ticks_str(ticks_buf);
     acquire(&dmesg_buf.lock);
