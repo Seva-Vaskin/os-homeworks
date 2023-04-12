@@ -190,4 +190,4 @@ void            virtio_disk_intr(void);
 
 // pr_msg.c
 void pr_msg(char *fmt, ...);
-void init_dmesg_buf();
+void init_kernel_dmesg_buf();

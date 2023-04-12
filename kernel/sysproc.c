@@ -82,10 +82,12 @@ sys_uptime(void) {
     return xticks;
 }
 
-void show_dmesg_buf();
+void copyout_kernel_dmesg_buf_entries(uint64 ptr);
 
 uint64
 sys_dmesg(void) {
-    show_dmesg_buf();
+    uint64 ptr;
+    argaddr(0, &ptr);
+    copyout_kernel_dmesg_buf_entries(ptr);
     return 0;
 }
