@@ -258,7 +258,6 @@ static int counter = 0;
 
 void copyout_kernel_dmesg_buf_entries(uint64 ptr) {
     counter++;
-    pr_msg("kernel dmesg buf copied %d(%x) times. %s %p", counter, counter, "Now copy to", ptr);
     acquire(&kernel_buf.lock);
     copyout(myproc()->pagetable, ptr, (char *)&kernel_buf.entries, sizeof kernel_buf.entries);
     release(&kernel_buf.lock);

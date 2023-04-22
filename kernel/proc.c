@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "pr_msg.h"
 
 struct cpu cpus[NCPU];
 
@@ -458,6 +459,9 @@ scheduler(void)
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
+
+        pr_msg("switch to process %s(%d)", p->name, p->pid);
+
         p->state = RUNNING;
         c->proc = p;
         swtch(&c->context, &p->context);
