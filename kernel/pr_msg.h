@@ -14,3 +14,8 @@ typedef struct dmesg_buf {
     struct spinlock lock;
 } dmesg_buf_t;
 
+void copyout_kernel_dmesg_buf_entries(uint64 ptr);
+
+extern int interrupt_logging;
+extern int proc_switch_logging;
+extern int syscall_logging;

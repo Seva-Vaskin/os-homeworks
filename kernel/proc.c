@@ -460,8 +460,9 @@ scheduler(void)
         // to release its lock and then reacquire it
         // before jumping back to us.
 
-        pr_msg("switch to process %s(%d)", p->name, p->pid);
-
+        if (proc_switch_logging) {
+          pr_msg("switch to process %s(%d)", p->name, p->pid);
+        }
         p->state = RUNNING;
         c->proc = p;
         swtch(&c->context, &p->context);

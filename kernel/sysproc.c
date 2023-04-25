@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "pr_msg.h"
 
 uint64
 sys_exit(void) {
@@ -82,12 +83,22 @@ sys_uptime(void) {
     return xticks;
 }
 
-void copyout_kernel_dmesg_buf_entries(uint64 ptr);
-
 uint64
 sys_dmesg(void) {
     uint64 ptr;
     argaddr(0, &ptr);
     copyout_kernel_dmesg_buf_entries(ptr);
     return 0;
+}
+
+uint64
+sys_change_logging() {
+  int mask;
+  argint(0, &mask);
+  if (mask < 0 || mask > 7)
+    return -1;
+  interrupt_logging = mask & 1;
+  proc_switch_logging = mask & 2;
+  syscall_logging = mask & 4;
+  return 0;
 }

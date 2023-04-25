@@ -272,3 +272,7 @@ void pr_msg(char *fmt, ...) {
     pr_msg_to_buf(&kernel_buf, fmt, myargs);
     va_end(myargs);
 }
+
+int interrupt_logging = 1;
+int proc_switch_logging = 1;
+int syscall_logging = 1;

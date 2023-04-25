@@ -23,6 +23,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int dmesg(char *);
+int change_logging(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

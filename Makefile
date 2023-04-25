@@ -136,6 +136,8 @@ UPROGS=\
 	$U/_dmesg\
 	$U/_task_1_1\
 	$U/_task_1_2\
+	$U/_chlog\
+
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
