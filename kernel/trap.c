@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "pr_msg.h"
 
 struct spinlock tickslock;
 uint ticks;
@@ -185,6 +186,10 @@ devintr()
 
     // irq indicates which device interrupted.
     int irq = plic_claim();
+
+    if (interrupt_logging) {
+      pr_msg("interrupted by device %d", irq);
+    }
 
     if(irq == UART0_IRQ){
       uartintr();
