@@ -619,7 +619,7 @@ dirlink(struct inode *dp, char *name, uint inum)
 //   skipelem("a", name) = "", setting name = "a"
 //   skipelem("", name) = skipelem("////", name) = 0
 //
-static char*
+char*
 skipelem(char *path, char *name)
 {
   char *s;
@@ -694,4 +694,30 @@ struct inode*
 nameiparent(char *path, char *name)
 {
   return namex(path, 1, name);
+}
+
+int resolve_path(struct inode **dip, struct inode **ip, char *path) {
+  char name[DIRSIZ];
+  struct inode *ip1 = *dip, *ip2 = 0;
+  while ((path = skipelem(path, name)) != 0) {
+    ilock(ip1);
+    if ((ip1)->type != T_DIR) {
+      iunlock(ip1);
+      return -1;
+    }
+    if ((ip2 = dirlookup(ip1, name, 0)) == 0) {
+      iunlockput(ip1);
+      return -1;
+    }
+    iunlockput(ip1);
+    if (*path != '\0')
+      ip1 = ip2;
+  }
+  if (ip1->type == T_DIR || ip2 == 0 || ip2->type != T_DIR) {
+    printf("seva lox\n");
+    return -1;
+  }
+  *dip = ip1;
+  *ip = ip2;
+  return 0;
 }
