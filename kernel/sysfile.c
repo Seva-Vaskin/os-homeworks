@@ -330,6 +330,56 @@ static int read_symlink(struct inode *ip, char *path) {
   return 0;
 }
 
+struct Path {
+  char path[MAXPATH];
+  uint8 len;
+};
+
+static void set_path(struct Path *p, char *path) {
+  p->len = strlen(path);
+  if (p->len >= MAXPATH)
+    panic("Too long path");
+  for (uint8 i = 0; i < p->len; i++) {
+    p->path[i] = path[i];
+  }
+}
+
+static void path_del_last(struct Path *p) {
+  while (p->len > 0 && p->path[p->len - 1] != '/') {
+    p->path[--p->len] = '\0';
+  }
+  if (p->len > 0) {
+    p->path[--p->len] = '\0';
+  }
+}
+
+static void add_char_to_path(struct Path *p, char c) {
+  if (p->len == MAXPATH)
+    panic("Too long path");
+  p->path[p->len++] = c;
+}
+
+static void add_to_path(struct Path *p, char *name) {
+  if (p->len != 0 && p->path[p->len - 1] != '/') {
+    add_char_to_path(p, '/');
+  }
+  while (*name != '\0') {
+    add_char_to_path(p, *name);
+    name++;
+  }
+}
+
+static void resolve_path(struct Path *p, char *path) {
+  if (path[0] == '/') {
+    set_path(p, path);
+    return;
+  }
+  char name[DIRSIZ];
+  while ((path = skipelem(path, name)) != 0) {
+    add_to_path(p, name);
+  }
+}
+
 uint64
 sys_open(void)
 {
@@ -363,13 +413,17 @@ sys_open(void)
     }
   }
   if ((ip->type == T_SYMLINK) && !no_follow) {
+    struct Path p;
+    set_path(&p, path);
     for (int i = 0; i < MAXHOPS && ip->type == T_SYMLINK; i++) {
       if (read_symlink(ip, path) == -1) {
         end_op();
         return -1;
       }
       iunlockput(ip);
-      if (inode_from_path(&ip, path, omode) == -1) {
+      path_del_last(&p);
+      resolve_path(&p, path);
+      if (inode_from_path(&ip, p.path, omode) == -1) {
         end_op();
         return -1;
       }
