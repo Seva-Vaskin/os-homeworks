@@ -369,6 +369,17 @@ iunlockput(struct inode *ip)
   iput(ip);
 }
 
+static uint resolve_addr_once(struct inode *ip, uint* addr, struct buf *bp) {
+  if (*addr == 0) {
+    *addr = balloc(ip->dev);
+    if (*addr == 0)
+      return 0;
+    if (bp != 0)
+      log_write(bp);
+  }
+  return *addr;
+}
+
 // Inode content
 //
 // The content (data) associated with each inode is stored
@@ -386,35 +397,32 @@ bmap(struct inode *ip, uint bn)
   struct buf *bp;
 
   if(bn < NDIRECT){
-    if((addr = ip->addrs[bn]) == 0){
-      addr = balloc(ip->dev);
-      if(addr == 0)
-        return 0;
-      ip->addrs[bn] = addr;
-    }
-    return addr;
+    return resolve_addr_once(ip, &ip->addrs[bn], 0);
   }
   bn -= NDIRECT;
 
   if(bn < NINDIRECT){
     // Load indirect block, allocating if necessary.
-    if((addr = ip->addrs[NDIRECT]) == 0){
-      addr = balloc(ip->dev);
-      if(addr == 0)
-        return 0;
-      ip->addrs[NDIRECT] = addr;
-    }
+    addr = resolve_addr_once(ip, &ip->addrs[NDIRECT], 0);
     bp = bread(ip->dev, addr);
     a = (uint*)bp->data;
-    if((addr = a[bn]) == 0){
-      addr = balloc(ip->dev);
-      if(addr){
-        a[bn] = addr;
-        log_write(bp);
-      }
-    }
+    addr = resolve_addr_once(ip, &a[bn], bp);
     brelse(bp);
     return addr;
+  }
+
+  bn -= NINDIRECT;
+  if (bn < NININDIRECT) {
+    addr = resolve_addr_once(ip, &ip->addrs[NDIRECT + 1], 0);
+    uint bsz[2] = {bn / NINDIRECT, bn % NINDIRECT};
+    for (int i = 0; i < 2; i++) {
+      bp = bread(ip->dev, addr);
+      a = (uint *)bp->data;
+      addr = resolve_addr_once(ip, &a[bsz[i]], bp);
+      brelse(bp);
+    }
+    bp = bread(ip->dev, addr);
+
   }
 
   panic("bmap: out of range");
